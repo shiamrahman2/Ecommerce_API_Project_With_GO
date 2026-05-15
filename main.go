@@ -29,12 +29,23 @@ handleCORS and handlePreflightRequest don't required because i handle CORS and P
 func main() {
 	//cmd.Serve()
 	var s string
-	s="abacabed"
-	fmt.Println(s)
-    byteArray:=[]byte(s)
-	fmt.Println(byteArray)
-	enc:=base64.URLEncoding
-    enc=enc.WithPadding(base64.NoPadding)
-	b64Encoding:=enc.EncodeToString(byteArray)
-	fmt.Println(b64Encoding)
+	s = "Hello World"
+
+	byteArr := []byte(s)
+	fmt.Println("string-", s)
+	fmt.Println("byte Array-", byteArr)
+	enc := base64.URLEncoding
+	enc = enc.WithPadding(base64.NoPadding)
+
+	b64Str := enc.EncodeToString(byteArr)
+
+	fmt.Println("Base 64-", b64Str)
+
+	convertByte,err:=enc.DecodeString(b64Str)
+	if err!=nil{
+		fmt.Println(err)
+		return
+	}
+	fmt.Println("Converted Byte-",convertByte)
+
 }
