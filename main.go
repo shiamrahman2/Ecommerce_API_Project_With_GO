@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/hmac"
 	"crypto/sha256"
 	//"encoding/base64"
 	"fmt"
@@ -13,8 +14,11 @@ import (
 func main() {
 	//cmd.Serve()
 	
-	data:=[]byte("Hello World")
-	EncryptedData:=sha256.Sum256(data)
-	fmt.Println(EncryptedData)
-
+	secret:=[]byte("my-secret")
+	message:=[]byte("Hello World")
+    
+	hash:=hmac.New(sha256.New,secret)
+	hash.Write(message)
+	hashFinal:=hash.Sum(nil)
+	fmt.Println(hashFinal)
 }
