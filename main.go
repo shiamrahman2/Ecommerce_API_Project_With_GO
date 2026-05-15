@@ -1,24 +1,24 @@
 package main
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	//"encoding/base64"
+	"ecomerce/util"
 	"fmt"
 )
 
-// import (
-// 	"ecomerce/cmd"
-// )
+//"ecomerce/cmd"
 
 func main() {
-	//cmd.Serve()
-	
-	secret:=[]byte("my-secret")
-	message:=[]byte("Hello World")
-    
-	hash:=hmac.New(sha256.New,secret)
-	hash.Write(message)
-	hashFinal:=hash.Sum(nil)
-	fmt.Println(hashFinal)
+	//	cmd.Serve()
+	str, err := util.CreateJWT("12345", util.PayLoad{
+		Sub:         56,
+		FirstName:   "Shiam Hosen",
+		LastName:    "Monna",
+		Email:       "shiamhosenmona@gmail.com",
+		IsShopOwner: false,
+	})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(str)
 }
