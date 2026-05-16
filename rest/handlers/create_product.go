@@ -1,16 +1,11 @@
 package handlers
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"ecomerce/config"
 	"ecomerce/database"
 	"ecomerce/util"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 func CreateProduct(w http.ResponseWriter, r *http.Request) {
@@ -20,45 +15,7 @@ func CreateProduct(w http.ResponseWriter, r *http.Request) {
 	 3. append the instance product with productList
 
 	*/
-	header := r.Header.Get("Authorization")
-	if header == "" {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-	headerArr := strings.Split(header, " ")
 
-	if len(headerArr) != 2 && headerArr[0] != "Bearer" {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-	accessToken := headerArr[1]
-
-	jwtParts := strings.Split(accessToken, ".")
-
-	if len(jwtParts) != 3 {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-	jwtHeader := jwtParts[0]
-	jwtPayload := jwtParts[1]
-	signature := jwtParts[2]
-
-	message := jwtHeader + "." + jwtPayload
-
-	cnf := config.GetConfig()
-
-	h := hmac.New(sha256.New, []byte(cnf.JwtSecretKey))
-	h.Write([]byte(message))
-	hash := h.Sum(nil)
-
-	newSignature := base64.URLEncoding.
-		WithPadding(base64.NoPadding).
-		EncodeToString(hash)
-
-	if signature != newSignature {
-		http.Error(w, "Unauthorized, Unknown Access", http.StatusUnauthorized)
-		return
-	}
 	var newProduct database.Product
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&newProduct)

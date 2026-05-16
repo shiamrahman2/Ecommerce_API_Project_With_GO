@@ -10,39 +10,39 @@ func InitRoute(mux *http.ServeMux, manager *middleware.Manager) {
 	mux.Handle("GET /Products",
 		manager.With(
 			http.HandlerFunc(handlers.GetProducts),
-			middleware.PracticeMiddleWare,
 		),
 	)
 
 	mux.Handle("POST /Products",
 		manager.With(
 			http.HandlerFunc(handlers.CreateProduct),
-				middleware.PracticeMiddleWare,
+			middleware.AuthenticationJWT,
 		),
 	)
 
 	mux.Handle("GET /Products/{id}",
 		manager.With(
 			http.HandlerFunc(handlers.GetProduct),
-				middleware.PracticeMiddleWare,
 		),
 	)
 
-	mux.Handle("PUT /Products/{id}",manager.With(
+	mux.Handle("PUT /Products/{id}", manager.With(
 		http.HandlerFunc(handlers.UpdateProduct),
-	  ),
-	)
-	mux.Handle("DELETE /Products/{id}",manager.With(
-		http.HandlerFunc(handlers.DeleteProduct),
+		middleware.AuthenticationJWT,
 	),
-	 )
-	mux.Handle("POST /user",manager.With(
-		 http.HandlerFunc(handlers.CreateUser),
-	 ),
 	)
-	mux.Handle("POST /user/login",manager.With(
-		 http.HandlerFunc(handlers.Login),
-	 ),
+	mux.Handle("DELETE /Products/{id}", manager.With(
+		http.HandlerFunc(handlers.DeleteProduct),
+		middleware.AuthenticationJWT,
+	),
 	)
-	
+	mux.Handle("POST /user", manager.With(
+		http.HandlerFunc(handlers.CreateUser),
+	),
+	)
+	mux.Handle("POST /user/login", manager.With(
+		http.HandlerFunc(handlers.Login),
+	),
+	)
+
 }
