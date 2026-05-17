@@ -1,4 +1,4 @@
-package handlers
+package product
 
 import (
 	"ecomerce/database"
@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func CreateProduct(w http.ResponseWriter, r *http.Request) {
+func(h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	/*
 	 1. receive body information(description,tittle,price,imageURL) from r.Body
 	 2. create a instance of Product

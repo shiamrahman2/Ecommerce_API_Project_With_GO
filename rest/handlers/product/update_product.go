@@ -1,4 +1,4 @@
-package handlers
+package product
 
 import (
 	"ecomerce/database"
@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-func UpdateProduct(w http.ResponseWriter,r *http.Request){
+func (h *Handler) UpdateProduct(w http.ResponseWriter,r *http.Request){
 	ProductId:=r.PathValue("id")// ProductId is a string 
 	pId,err:=strconv.Atoi(ProductId)// convert string into integer which may int or not that why err
 
