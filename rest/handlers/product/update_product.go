@@ -1,7 +1,7 @@
 package product
 
 import (
-	repo "ecomerce/Repo"
+	"ecomerce/repo"
 	"ecomerce/util"
 	"encoding/json"
 	"fmt"
