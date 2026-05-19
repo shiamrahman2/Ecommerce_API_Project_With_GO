@@ -3,14 +3,22 @@ package cmd
 import (
 	repo "ecomerce/Repo"
 	"ecomerce/config"
+	"ecomerce/infra/db"
 	"ecomerce/rest"
 	"ecomerce/rest/handlers/product"
 	"ecomerce/rest/handlers/user"
 	"ecomerce/rest/middleware"
+	"fmt"
+	"os"
 )
 
 func Serve() {
 	cnf := config.GetConfig()
+	dbCon,err:=db.NewConnection()
+	if err!=nil{
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	productRepo := repo.NewProductRepo()
 	userRepo := repo.NewUserRepo()
 	middleware := middleware.NewMiddleWare(cnf)
