@@ -1,32 +1,47 @@
 package product
 
 import (
-	"ecomerce/database"
+	repo "ecomerce/Repo"
 	"ecomerce/util"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 )
+type UpdateProduct struct {
+	Tittle      string  `json:"tittle"`
+	Description string  `json:"description"`
+	Price       float64 `json:"price"`
+	ImgURL      string  `json:"imageURL"`
+}
 
-func (h *Handler) UpdateProduct(w http.ResponseWriter,r *http.Request){
-	ProductId:=r.PathValue("id")// ProductId is a string 
-	pId,err:=strconv.Atoi(ProductId)// convert string into integer which may int or not that why err
+func (h *Handler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
+	ProductId := r.PathValue("id")      // ProductId is a string
+	pId, err := strconv.Atoi(ProductId) // convert string into integer which may int or not that why err
 
-	if err!=nil{
-		http.Error(w,"Please Give Me a Valid ID",http.StatusBadRequest)
+	if err != nil {
+		http.Error(w, "Please Give Me a Valid ID", http.StatusBadRequest)
 		return
 	}
-	var newProduct database.Product
-    decoder:=json.NewDecoder(r.Body)
-	 err=decoder.Decode(&newProduct)
-	 if err != nil {
+	var updateProduct UpdateProduct
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(&updateProduct)
+	if err != nil {
 		fmt.Println(err)
-		http.Error(w, "Please Give Me a Valid Json", http.StatusBadRequest)
+		util.SendError(w, "Please Give Me a Valid Json", http.StatusBadRequest)
 		return
 	}
-	newProduct.ID=pId
-	database.Update(newProduct)
-	util.SendData(w,"Successfully Updated data",http.StatusCreated)
+	_,err=h.productRepo.Update(repo.Product{
+        ID:pId,
+		Tittle:updateProduct.Tittle,
+		Description:updateProduct.Description,
+		ImgURL: updateProduct.ImgURL,
+		Price:updateProduct.Price,
+	})
+	if err!=nil{
+		util.SendError(w,"Internal Server Error",http.StatusInternalServerError)
+		return
+	}
+	util.SendData(w, "Successfully Updated data", http.StatusCreated)
 
 }

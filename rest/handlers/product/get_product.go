@@ -1,27 +1,30 @@
 package product
 
 import (
-	"ecomerce/database"
 	"ecomerce/util"
 	"net/http"
 	"strconv"
 )
 
-func (h *Handler) GetProduct(w http.ResponseWriter,r* http.Request){
-	ProductId:=r.PathValue("id")// ProductId is a string 
-	pId,err:=strconv.Atoi(ProductId)// convert string into integer which may int or not that why err
+func (h *Handler) GetProduct(w http.ResponseWriter, r *http.Request) {
+	ProductId := r.PathValue("id")      // ProductId is a string
+	pId, err := strconv.Atoi(ProductId) // convert string into integer which may int or not that why err
 
-	if err!=nil{
-		http.Error(w,"Please Give Me a Valid ID",http.StatusBadRequest)
+	if err != nil {
+		http.Error(w, "Please Give Me a Valid ID", http.StatusBadRequest)
 		return
 	}
 
-	product:=database.Get(pId)
-
-	if product==nil{
-		util.SendError(w,http.StatusNotFound,"Product doesn't found")
-		return;
+	product, err := h.productRepo.Get(pId)
+	if err != nil {
+		util.SendError(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
-    util.SendData(w,product,http.StatusOK)
+
+	if product == nil {
+		util.SendError(w, "Product doesn't found", http.StatusNotFound)
+		return
+	}
+	util.SendData(w, product, http.StatusOK)
 
 }

@@ -1,14 +1,21 @@
 package product
 
 import (
-	"ecomerce/database"
+	repo "ecomerce/Repo"
 	"ecomerce/util"
 	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
-func(h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
+type ReqProduct struct {
+	Tittle      string  `json:"tittle"`
+	Description string  `json:"description"`
+	Price       float64 `json:"price"`
+	ImgURL      string  `json:"imageURL"`
+}
+
+func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 	/*
 	 1. receive body information(description,tittle,price,imageURL) from r.Body
 	 2. create a instance of Product
@@ -16,7 +23,7 @@ func(h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 
 	*/
 
-	var newProduct database.Product
+	var newProduct ReqProduct
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&newProduct)
 	if err != nil {
@@ -25,7 +32,15 @@ func(h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createProduct := database.Store(newProduct)
-
-	util.SendData(w, createProduct, 201)
+	createProduct, err := h.productRepo.Create(repo.Product{
+		Tittle:      newProduct.Tittle,
+		Description: newProduct.Description,
+		Price:       newProduct.Price,
+		ImgURL:      newProduct.ImgURL,
+	})
+	if err != nil {
+		util.SendError(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	util.SendData(w, createProduct, http.StatusCreated)
 }

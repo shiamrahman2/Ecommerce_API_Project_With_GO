@@ -1,8 +1,6 @@
 package user
 
 import (
-	"ecomerce/config"
-	"ecomerce/database"
 	"ecomerce/util"
 	"encoding/json"
 	"net/http"
@@ -13,7 +11,7 @@ type LogUser struct {
 	Password string `json:"password"`
 }
 
-func(h* Handler) Login(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var reqUser LogUser
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&reqUser)
@@ -22,22 +20,25 @@ func(h* Handler) Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid User Information", http.StatusBadRequest)
 		return
 	}
-	usr:=database.Find(reqUser.Email,reqUser.Password)
-	if usr==nil{
-		http.Error(w,"Invalid Credential",http.StatusBadRequest)
+	usr, err := h.userRepo.Find(reqUser.Email, reqUser.Password)
+	if err != nil {
+		util.SendError(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-	cnf:=config.GetConfig()
-	accessToken,err:=util.CreateJWT(cnf.JwtSecretKey,util.PayLoad{
-		Sub:usr.ID,
-		FirstName:usr.FirstName,
-		LastName:usr.LastName,
-		Email: usr.Email,
-		IsShopOwner:usr.IsShopOwner,
-	})
-	if err!=nil{
-		http.Error(w,"Internal Server Error",http.StatusInternalServerError)
-		return;
+	if usr == nil {
+		util.SendError(w, "Invalid Credential", http.StatusBadRequest)
+		return
 	}
-	util.SendData(w,accessToken, http.StatusCreated)
+	accessToken, err := util.CreateJWT(h.cnf.JwtSecretKey, util.PayLoad{
+		Sub:         usr.ID,
+		FirstName:   usr.FirstName,
+		LastName:    usr.LastName,
+		Email:       usr.Email,
+		IsShopOwner: usr.IsShopOwner,
+	})
+	if err != nil {
+		util.SendError(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	util.SendData(w, accessToken, http.StatusCreated)
 }
