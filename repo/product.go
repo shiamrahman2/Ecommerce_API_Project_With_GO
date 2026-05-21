@@ -1,11 +1,16 @@
 package repo
 
+import (
+	"database/sql"
+
+	"github.com/jmoiron/sqlx"
+)
 type Product struct {
-	ID          int     `json:"id"`
-	Tittle      string  `json:"tittle"`
-	Description string  `json:"description"`
-	Price       float64 `json:"price"`
-	ImgURL      string  `json:"imageURL"`
+	ID          int     `json:"id" db:"id"`
+	Tittle      string  `json:"tittle" db:"tittle"`
+	Description string  `json:"description" db:"description"`
+	Price       float64 `json:"price" db:"price"`
+	ImgURL      string  `json:"imageURL" db:"image_url"`
 }
 
 type ProductRepo interface {
@@ -17,99 +22,120 @@ type ProductRepo interface {
 }
 
 type productRepo struct {
-	productList []*Product
+	db *sqlx.DB
 }
 
-func NewProductRepo() ProductRepo {
-	repo := &productRepo{}
-	GenerateInitialProducts(repo)
-	return repo
+func NewProductRepo(db *sqlx.DB) ProductRepo {
+	return &productRepo{
+		db:db,
+	}
 }
 
 func (r *productRepo) Create(p Product) (*Product, error) {
-	p.ID = len(r.productList) + 1
-	r.productList = append(r.productList, &p)
+
+	query := `
+	INSERT INTO products(
+		tittle,
+		description,
+		price,
+		image_url
+	) VALUES (
+		$1,
+		$2,
+		$3,
+		$4
+	)
+	RETURNING id
+	`
+
+	row := r.db.QueryRow(
+		query,
+		p.Tittle,
+		p.Description,
+		p.Price,
+		p.ImgURL,
+	)
+
+	err := row.Scan(&p.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &p, nil
 }
-func (r *productRepo) List() ([]*Product, error) {
-	return r.productList, nil
-}
 func (r *productRepo) Get(productId int) (*Product, error) {
-	for _, product := range r.productList {
-		if product.ID == productId {
-			return product, nil
+	var prd Product
+	query:=`
+     SELECT
+	  id,
+	  tittle,
+	  description,
+	  price,
+	  image_url
+	 FROM products
+	 WHERE id=$1
+	`
+	 err:=r.db.Get(&prd,query,productId)
+	 if err!=nil{
+		if err==sql.ErrNoRows{
+			return nil,nil
+		}else{
+			return nil,err
 		}
-	}
-	return nil, nil
+	 }
+	 return &prd,nil
+}
+func (r *productRepo) List() ([]*Product, error) {
+	var productList []*Product
+	query:=`
+     SELECT
+	  id,
+	  tittle,
+	  description,
+	  price,
+	  image_url
+	 FROM products
+	`
+	 err:=r.db.Select(&productList,query)
+	 if err!=nil{
+		return nil,err
+	 }
+	 return productList,nil
 }
 func (r *productRepo) Update(product Product) (*Product, error) {
-	for idx, pro := range r.productList {
-		if pro.ID == product.ID {
-			r.productList[idx] = &product
-		}
+	query:=`
+	UPDATE products
+	SET
+	tittle=$1,
+	description=$2,
+	price=$3,
+	image_url=$4
+	WHERE id=$5
+	`
+	row:=r.db.QueryRow(
+		query,
+		product.Tittle,
+		product.Description,
+		product.Price,
+		product.ImgURL,
+	    product.ID,
+	   )
+	err:=row.Err()
+	if err!=nil{
+		return nil,err
 	}
-	return &product, nil
+	return &product,nil
 }
 func (r *productRepo) Delete(productId int) error {
-	var tempList []*Product
-
-	for _, p := range r.productList {
-		if p.ID != productId {
-			tempList = append(tempList, p)
-		}
+	query:=`
+	DELETE FROM products WHERE id=$1
+	`
+	_ , err:=r.db.Exec(query,productId)
+	if err!=nil{
+		return err
 	}
-	r.productList = tempList
 	return nil
 }
 
-func GenerateInitialProducts(r *productRepo) {
-	prd1 := &Product{
-		ID:          1,
-		Tittle:      "Orange",
-		Description: "Orange is Red.I Love Orange",
-		Price:       100,
-		ImgURL:      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRe_ACiJ6hVHQxMGOLRo7xqzrF36Iy7AQBhzw&s",
-	}
-	prd2 := &Product{
-		ID:          2,
-		Tittle:      "Apple",
-		Description: "Apple is Green.I Love Apple",
-		Price:       40,
-		ImgURL:      "https://thumbs.dreamstime.com/b/fresh-green-apple-26821143.jpg",
-	}
-	prd3 := &Product{
-		ID:          3,
-		Tittle:      "Banana",
-		Description: "Banana is Green.I Love Eating Banana.It's provide instant energy",
-		Price:       10,
-		ImgURL:      "https://t4.ftcdn.net/jpg/14/38/40/45/360_F_1438404595_1xovTEsBNaKfKJAJ7bEjgHWfbglx2QF3.jpg",
-	}
-	prd4 := &Product{
-		ID:          4,
-		Tittle:      "Mango",
-		Description: "Mango is my favourite Fruits.",
-		Price:       30,
-		ImgURL:      "https://c8.alamy.com/comp/2APAH3J/mango-fruits-tree-hanging-branch-chiang-mai-thailand-2APAH3J.jpg",
-	}
-	prd5 := &Product{
-		ID:          5,
-		Tittle:      "Jack-fruit",
-		Description: "Jack-Fruit is boring.",
-		Price:       70,
-		ImgURL:      "https://png.pngtree.com/thumb_back/fh260/background/20241025/pngtree-ripe-jackfruit-on-a-tree-image_16379412.jpg",
-	}
-	prd6 := &Product{
-		ID:          6,
-		Tittle:      "Lichi",
-		Description: "I Love Eating Lichi.",
-		Price:       120,
-		ImgURL:      "https://thumbs.dreamstime.com/b/litchi-fruits-17476031.jpg",
-	}
-	r.productList = append(r.productList, prd1)
-	r.productList = append(r.productList, prd2)
-	r.productList = append(r.productList, prd3)
-	r.productList = append(r.productList, prd4)
-	r.productList = append(r.productList, prd5)
-	r.productList = append(r.productList, prd6)
 
-}
+
