@@ -32,7 +32,7 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		IsShopOwner: newUser.IsShopOwner,
 	})
 	if err != nil {
-		util.SendError(w, "Internal Server Error", http.StatusInternalServerError)
+		util.SendError(w, "Internal Server Error ", http.StatusInternalServerError)
 		return
 	}
 	util.SendData(w, createdNewUser, http.StatusCreated)
