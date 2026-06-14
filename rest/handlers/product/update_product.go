@@ -1,7 +1,7 @@
 package product
 
 import (
-	"ecomerce/repo"
+	"ecomerce/domain"
 	"ecomerce/util"
 	"encoding/json"
 	"fmt"
@@ -31,7 +31,7 @@ func (h *Handler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		util.SendError(w, "Please Give Me a Valid Json", http.StatusBadRequest)
 		return
 	}
-	_,err=h.productRepo.Update(repo.Product{
+	_,err=h.svc.Update(domain.Product{
         ID:pId,
 		Tittle:updateProduct.Tittle,
 		Description:updateProduct.Description,

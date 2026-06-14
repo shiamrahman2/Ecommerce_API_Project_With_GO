@@ -1,21 +1,15 @@
 package repo
 
 import (
+	"ecomerce/domain"
+	"ecomerce/user"
+
 	"github.com/jmoiron/sqlx"
 )
 
-type User struct {
-	ID          int    `json:"id" db:"id"`
-	FirstName   string `json:"first_name" db:"first_name"`
-	LastName    string `json:"last_name" db:"last_name"`
-	Email       string `json:"email" db:"email"`
-	Password    string `json:"password" db:"password"`
-	IsShopOwner bool   `json:"is_shop_owner" db:"is_shop_owner"`
-}
 
 type UserRepo interface {
-	Create(usr User) (*User, error)
-	Find(email, pass string) (*User, error)
+   user.UserRepo   // Embedding
 }
 
 type userRepo struct {
@@ -28,7 +22,7 @@ func NewUserRepo(db *sqlx.DB) UserRepo {
 	}
 }
 
-func (r *userRepo) Create(usr User) (*User, error) {
+func (r *userRepo) Create(usr domain.User) (*domain.User, error) {
 
 	query := `
 	INSERT INTO users (
@@ -57,9 +51,9 @@ func (r *userRepo) Create(usr User) (*User, error) {
 	return &usr, nil
 }
 
-func (r *userRepo) Find(email, pass string) (*User, error) {
+func (r *userRepo) Find(email, pass string) (*domain.User, error) {
 
-	var user User
+	var user domain.User
 
 	query := `
 	SELECT 

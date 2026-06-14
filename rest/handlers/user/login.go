@@ -20,7 +20,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid User Information", http.StatusBadRequest)
 		return
 	}
-	usr, err := h.userRepo.Find(reqUser.Email, reqUser.Password)
+	usr, err := h.svc.Find(reqUser.Email, reqUser.Password)
 	if err != nil {
 		util.SendError(w, "Internal Server Error", http.StatusInternalServerError)
 		return

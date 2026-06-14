@@ -3,11 +3,13 @@ package cmd
 import (
 	"ecomerce/config"
 	"ecomerce/infra/db"
+	"ecomerce/product"
 	"ecomerce/repo"
 	"ecomerce/rest"
-	"ecomerce/rest/handlers/product"
-	"ecomerce/rest/handlers/user"
+	productHandler "ecomerce/rest/handlers/product"
+	userHandler "ecomerce/rest/handlers/user"
 	"ecomerce/rest/middleware"
+	"ecomerce/user"
 	"fmt"
 	"os"
 )
@@ -24,11 +26,15 @@ func Serve() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	// Repository
 	productRepo:=repo.NewProductRepo(dbCon)
 	userRepo:=repo.NewUserRepo(dbCon)
+    // domain
+	userSVC:=user.NewService(userRepo)
+    prdSVC:=product.NewService(productRepo)
 	middleware := middleware.NewMiddleWare(cnf)
-	productHandler := product.NewHandler(middleware, productRepo)
-	userHandler := user.NewHandler(cnf, userRepo)
+	productHandler := productHandler.NewHandler(middleware, prdSVC)
+	userHandler := userHandler.NewHandler(cnf, userSVC)
 	serve := rest.NewServer(cnf, productHandler, userHandler)
 	serve.Start()
 }

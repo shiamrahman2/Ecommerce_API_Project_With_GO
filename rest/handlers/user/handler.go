@@ -2,17 +2,16 @@ package user
 
 import (
 	"ecomerce/config"
-	"ecomerce/repo"
 )
 
 type Handler struct {
-	cnf      *config.Config
-	userRepo repo.UserRepo
+	cnf *config.Config
+	svc Service
 }
 
-func NewHandler(cnf *config.Config, userRepo repo.UserRepo) *Handler { // NewHandler Func return an empty Handler Obj. Pointer
+func NewHandler(cnf *config.Config, svc Service) *Handler { // NewHandler Func return an empty Handler Obj. Pointer
 	return &Handler{
-		cnf:      cnf,
-		userRepo: userRepo,
+		cnf: cnf,
+		svc: svc,
 	}
 }
