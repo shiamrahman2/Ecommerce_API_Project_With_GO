@@ -18,7 +18,7 @@ type productRepo struct {
 
 func NewProductRepo(db *sqlx.DB) ProductRepo {
 	return &productRepo{
-		db:db,
+		db: db,
 	}
 }
 
@@ -56,7 +56,7 @@ func (r *productRepo) Create(p domain.Product) (*domain.Product, error) {
 }
 func (r *productRepo) Get(productId int) (*domain.Product, error) {
 	var prd domain.Product
-	query:=`
+	query := `
      SELECT
 	  id,
 	  tittle,
@@ -66,19 +66,20 @@ func (r *productRepo) Get(productId int) (*domain.Product, error) {
 	 FROM products
 	 WHERE id=$1
 	`
-	 err:=r.db.Get(&prd,query,productId)
-	 if err!=nil{
-		if err==sql.ErrNoRows{
-			return nil,nil
-		}else{
-			return nil,err
+	err := r.db.Get(&prd, query, productId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		} else {
+			return nil, err
 		}
-	 }
-	 return &prd,nil
+	}
+	return &prd, nil
 }
-func (r *productRepo) List() ([]*domain.Product, error) {
+func (r *productRepo) List(page, limit int64) ([]*domain.Product, error) {
+	offset := ((page - 1) * limit) + 1
 	var productList []*domain.Product
-	query:=`
+	query := `
      SELECT
 	  id,
 	  tittle,
@@ -86,15 +87,16 @@ func (r *productRepo) List() ([]*domain.Product, error) {
 	  price,
 	  image_url
 	 FROM products
+	 LIMIT $1 OFFSET $2
 	`
-	 err:=r.db.Select(&productList,query)
-	 if err!=nil{
-		return nil,err
-	 }
-	 return productList,nil
+	err := r.db.Select(&productList, query, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	return productList, nil
 }
 func (r *productRepo) Update(product domain.Product) (*domain.Product, error) {
-	query:=`
+	query := `
 	UPDATE products
 	SET
 	tittle=$1,
@@ -103,30 +105,39 @@ func (r *productRepo) Update(product domain.Product) (*domain.Product, error) {
 	image_url=$4
 	WHERE id=$5
 	`
-	row:=r.db.QueryRow(
+	row := r.db.QueryRow(
 		query,
 		product.Tittle,
 		product.Description,
 		product.Price,
 		product.ImgURL,
-	    product.ID,
-	   )
-	err:=row.Err()
-	if err!=nil{
-		return nil,err
+		product.ID,
+	)
+	err := row.Err()
+	if err != nil {
+		return nil, err
 	}
-	return &product,nil
+	return &product, nil
 }
 func (r *productRepo) Delete(productId int) error {
-	query:=`
+	query := `
 	DELETE FROM products WHERE id=$1
 	`
-	_ , err:=r.db.Exec(query,productId)
-	if err!=nil{
+	_, err := r.db.Exec(query, productId)
+	if err != nil {
 		return err
 	}
 	return nil
 }
+func (r *productRepo) Count() (int64, error) {
+	var count int64
 
+	query := `SELECT COUNT(*) FROM products`
 
+	err := r.db.Get(&count, query)
+	if err != nil {
+		return 0, err
+	}
 
+	return count, nil
+}
